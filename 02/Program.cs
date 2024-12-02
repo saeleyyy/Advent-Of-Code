@@ -1,52 +1,101 @@
-﻿int totalSafe = 0;
-int totalUnsafe = 0;
-int linesProcessed = 0;
-
-foreach (var report in File.ReadLines("input.txt"))
+﻿internal class Program
 {
-    linesProcessed++;
-
-    var levels = report.Split(" ").Select(int.Parse).ToArray();
-
-    if (levels[0] == levels[1])
+    private static int totalSafe { get; set; } = 0;
+    private static int totalUnsafe { get; set; } = 0;
+    private static int linesProcessed { get; set; } = 0;
+    private static List<int[]> unsafeReports = new();
+    
+    private static void Main(string[] args)
     {
-        Console.WriteLine($"{report} - UnSafe");
-        totalUnsafe++;
-        continue;
+        // Part One
+        IdentifySafeReports();
+        // Part Two
+        DampenUnsafeReports();
     }
-
-    LevelTrajectory trajectory = levels[0] > levels[1] ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
-
-    bool safe = true;
-    foreach (var (curr, next) in levels.Zip(levels.Skip(1)))
+    
+    private static void IdentifySafeReports()
     {
-        var currentTrajectory = curr > next ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
-        if (currentTrajectory != trajectory)
+        foreach(var report in File.ReadLines("input.txt"))
         {
-            safe = false;
+            linesProcessed++;
+
+            // Parse levels into int array
+            var levels = report.Split(" ").Select(int.Parse).ToArray();
+
+            // Determine expected trajectory of report levels to be determined safe
+            LevelTrajectory expectedTrajectory = levels[0] > levels[1] ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
+
+            bool safe = true;
+            foreach (var (curr, next) in levels.Zip(levels.Skip(1)))
+            {
+                var trajectory = curr > next ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
+
+                /*
+                    Mark report as unsafe if current and next level...
+                        are the same value
+                        have a difference of outside the range 1 -> 3
+                        change trajectory i.e. 1, 2, 3, 5. Changes to Ascending at 5
+                        
+                */
+                if (curr == next || Math.Abs(curr - next) > 3 || trajectory != expectedTrajectory)
+                {
+                    totalUnsafe++;
+                    unsafeReports.Add(levels);
+                    safe = false;
+                    break;
+                }
+            }
+
+            if (safe)
+            {
+                totalSafe++;
+            }
         }
 
-        if ((curr == next) || Math.Abs(curr - next) > 3)
-        {
-            safe = false;
-        }
+        Console.WriteLine($"\nTotal Safe Reports: {totalSafe}");
+        Console.WriteLine($"Total UnSafe Reports: {totalUnsafe}");
+        Console.WriteLine($"Lines Processed: {linesProcessed}");
     }
 
-    if (safe)
+    private static void DampenUnsafeReports()
     {
-        Console.WriteLine($"{report} - Safe");
-        totalSafe++;
-    }
-    else
-    {
-        Console.WriteLine($"{report} - UnSafe");
-        totalUnsafe++;
+        int newlySafeReports = 0;
+        int counter = 0;
+        foreach (var report in unsafeReports)
+        {
+            counter++;
+            for (int i = 0; i < report.Count(); i++)
+            {
+                var levels = report.ToList();
+                levels.RemoveAt(i);
+
+                LevelTrajectory expectedTrajectory = levels[0] > levels[1] ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
+
+                bool safe = true;
+                foreach (var (curr, next) in levels.Zip(levels.Skip(1)))
+                {
+                    var trajectory = curr > next ? LevelTrajectory.Descending : LevelTrajectory.Ascending;
+
+                    if (curr == next || Math.Abs(curr - next) > 3 || trajectory != expectedTrajectory)
+                    {
+                        safe = false;
+                        break;
+                    };
+                }
+
+                if (safe)
+                {
+                    newlySafeReports++;
+                    break;
+                }
+            }
+        }
+
+        Console.WriteLine($"\nThe Dampening process has produced {newlySafeReports} safe reports");
+        Console.WriteLine($"There are now {totalSafe + newlySafeReports} Safe Reports");
+        Console.WriteLine($"Lines Processed {counter}");
     }
 }
-
-Console.WriteLine($"\nTotal Safe Reports: {totalSafe}");
-Console.WriteLine($"Total UnSafe Reports: {totalUnsafe}");
-Console.WriteLine($"Lines Processed: {linesProcessed}");
 
 public enum LevelTrajectory
 {
