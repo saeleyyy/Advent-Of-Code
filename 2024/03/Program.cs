@@ -18,6 +18,7 @@ var matches = Regex.Matches(corruptedMemory, @"(mul\(\d{1,3},\d{1,3}\))|(don't\(
 // Part 2
 bool calc = true;
 int partTwoTotal = 0;
+
 foreach(var match in matches.Select(x => x.Value))
 {
     switch(match)
@@ -33,10 +34,10 @@ foreach(var match in matches.Select(x => x.Value))
     if (calc)
     {
         partTwoTotal += match.Replace("mul(", "")
-         .Replace(")", "")
-         .Split(",")
-        .Select(x => int.Parse(x))
-        .Aggregate((a, x) => a * x);
+            .Replace(")", "")
+            .Split(",")
+            .Select(int.Parse)
+            .Aggregate((a, x) => a * x);
     }
 }
 
