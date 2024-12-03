@@ -2,7 +2,8 @@
 
 string corruptedMemory = File.ReadAllText("input.txt");
 
-var total  = Regex.Matches(corruptedMemory, @"mul\(\d{1,3},\d{1,3}\)")
+// Part 1
+var partOneTotal  = Regex.Matches(corruptedMemory, @"mul\(\d{1,3},\d{1,3}\)")
                 .Select(m => m.Value)
                 .Select(m => 
                     m.Replace("mul(", "")
@@ -11,35 +12,32 @@ var total  = Regex.Matches(corruptedMemory, @"mul\(\d{1,3},\d{1,3}\)")
                         .Select(x => int.Parse(x))
                         .Aggregate((a, x) => a * x)).Sum();
 
-Console.WriteLine($"Part 1 Result: {total}");
-var x = Regex.Matches(corruptedMemory, @"(mul\(\d{1,3},\d{1,3}\))|(don't\(\))|(do\(\))");
+Console.WriteLine($"Part 1 Result: {partOneTotal}");
+var matches = Regex.Matches(corruptedMemory, @"(mul\(\d{1,3},\d{1,3}\))|(don't\(\))|(do\(\))");
 
+// Part 2
 bool calc = true;
-List<string> y = new();
-foreach(var t  in x.Select(x => x.Value))
+int partTwoTotal = 0;
+foreach(var match in matches.Select(x => x.Value))
 {
-    if(t == "don't()")
+    switch(match)
     {
-        calc = false;
-        continue;
+        case "don't()":
+            calc = false;
+            continue;
+        case "do()":
+            calc = true;
+            continue;
     }
 
-    if(t == "do()") {
-        calc = true;
-        continue;
-    };
-
-    if(calc == true)
+    if (calc)
     {
-        y.Add(t);
+        partTwoTotal += match.Replace("mul(", "")
+         .Replace(")", "")
+         .Split(",")
+        .Select(x => int.Parse(x))
+        .Aggregate((a, x) => a * x);
     }
 }
 
-var res = y.Select(m => 
-    m.Replace("mul(", "")
-    .Replace(")", "")
-    .Split(",")
-    .Select(x => int.Parse(x))
-    .Aggregate((a, x) => a * x)).Sum();
-
-Console.WriteLine($"Part 2 Result: {res}");
+Console.WriteLine($"Part 2 Result: {partTwoTotal}");
